@@ -8,4 +8,5 @@ public class ManagerTests {
     public void test() {
         System.out.println("success");
     }
+
 }

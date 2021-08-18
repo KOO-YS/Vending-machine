@@ -20,10 +20,10 @@ public class VendingMachine {
 
         // init setting
         Product[] sample = {
-            new Product(1, "코카콜라", 1200),
-            new Product(2, "사이다", 1500),
-            new Product(3, "환타", 500),
-            new Product(4, "다이제", 2000),
+                Product.builder().idx(1).name("코카콜라").price(1200).build(),
+                Product.builder().idx(2).name("사이다").price(1500).build(),
+                Product.builder().idx(3).name("환타").price(500).build(),
+                Product.builder().idx(4).name("다이제").price(200).build(),
         };
         for (int i=0; i<sample.length; i++){
             productMap.put(sample[i], i+2);
@@ -48,17 +48,24 @@ public class VendingMachine {
         this.balance += money;
     }
 
-//    public Product getProduct() {
-//    }
-
     /**
      * 충전된 금액으로 물품을 구매 가능여부를 판단한다.
-     * @param product
-     * @return
      */
     public boolean isChangeAvailable(Product product) {
         if (balance - product.getPrice() <0) return false;
-        else return true;
+        else {
+            this.balance -= product.getPrice();
+            stockOut(product, 1);
+            return true;
+        }
+    }
+
+    public Product getDetail(int idx) {
+        Product product = null;
+        for(Product p : productMap.keySet()) {
+            if(p.getIdx() == idx) product = p;
+        }
+        return product;
     }
 
     /**

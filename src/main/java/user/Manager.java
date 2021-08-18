@@ -1,15 +1,12 @@
 package user;
 
+import lombok.Builder;
 import sale.Product;
-import sale.VendingMachine;
 
-public class Manager {
+@Builder
+public class Manager extends User{
 
-    private VendingMachine vendingMachine;
-
-    public Manager() {
-        this.vendingMachine = VendingMachine.getInstance();
-    }
+    public Manager() { }
 
     /**
      * 상품 추가
@@ -33,9 +30,14 @@ public class Manager {
      * @param product 변경 대상
      * @param updatePrice 변경할 금액
      */
-    public Product updateProduct(Product product, int updatePrice){
+    public void updateProduct(Product product, int updatePrice){
+        product = vendingMachine.getDetail(product.getIdx());
+        int existed = vendingMachine.getStock(product);
+        // 기존 내용 제거
+        vendingMachine.stockOut(product);
+        // 업데이트 내용 추가
         product.setPrice(updatePrice);
-        return product;
+        vendingMachine.stockUp(product, existed);
     }
 
 }

@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 
 public class VendingMachineTests {
 
-    private static VendingMachine vendingMachine = VendingMachine.getInstance();
+    private static final VendingMachine vendingMachine = VendingMachine.getInstance();
 
     @Test
     public void add() {
-        Product product = new Product(1, "코카콜라", 1200);
+        Product product = Product.builder().idx(100000).build();
         vendingMachine.stockUp(product, 10);
         vendingMachine.stockOut(product, 10);
     }
@@ -17,6 +17,7 @@ public class VendingMachineTests {
      * 올바르게 구매를 했을 경우
      * -> [돈 넣고, 상품 선택하고, 상품 받고]
      * */
+
 
     /*
      * 두 개 이상의 상품을 구매한 경우
