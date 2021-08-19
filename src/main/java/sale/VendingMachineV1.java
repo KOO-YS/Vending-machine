@@ -4,12 +4,13 @@ import error.InvalidProductIdException;
 import error.LackOfStockException;
 import error.StockOutOfBoundsException;
 import product.Product;
+import sale_v2.Machine;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class VendingMachine{
+public class VendingMachine implements Machine<Product> {
     private static final VendingMachine singleton = new VendingMachine();
 
     public static VendingMachine getInstance() {
