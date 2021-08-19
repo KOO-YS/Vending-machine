@@ -1,25 +1,28 @@
 package user;
 
+import error.LackOfStockException;
 import error.NotSufficientMoneyException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sale.Product;
 import sale.VendingMachine;
 
 import java.util.Iterator;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+//https://www.vogella.com/tutorials/JUnit/article.html#unittesting_junitexample
+
 public class CustomerTests {
 
-    private static VendingMachine vendingMachine;
-    private static Customer haveMoney;
-    private static Customer defaultMoney;
-    private static Customer noMoney;
+    private static VendingMachine vendingMachine = VendingMachine.getInstance();
+    private Customer haveMoney;
+    private Customer defaultMoney;
+    private Customer noMoney;
 
-    @BeforeAll
-    public static void setUp() {
-        vendingMachine = VendingMachine.getInstance();
-        
+    @BeforeEach
+    void setUp() {
+        System.out.println("setup");
         // Customer 설정
         haveMoney = Customer.builder()
                         .budget(10000)
@@ -32,11 +35,12 @@ public class CustomerTests {
                 .build();
     }
 
+
     /**
      * 예산에 맞게 돈을 충전하려는 경우
      */
     @Test
-    public void charge() {
+    void charge() {
         // given
         int money = 5000;
 
@@ -45,31 +49,31 @@ public class CustomerTests {
 
         // then
         // 자판기에 충전된 돈
-        Assertions.assertEquals(vendingMachine.getBalance(), 5000);
+        assertEquals(vendingMachine.getBalance(), 5000);
         // 사용자에게 남은 돈
-        Assertions.assertEquals(haveMoney.getBudget(), 5000);
+        assertEquals(haveMoney.getBudget(), 5000);
     }
 
     /**
      * 예산을 초과해서 돈을 충전하려는 경우
      */
     @Test
-    public void chargeOver() {
+    void chargeOver() {
         // given
         int money = 500000;  // 10000 - 50000 ?
 
         // when & then
-        Assertions.assertThrows(NotSufficientMoneyException.class, () -> defaultMoney.chargeBalance(money));
+        assertThrows(NotSufficientMoneyException.class, () -> defaultMoney.chargeBalance(money));
 
         // then
-        Assertions.assertEquals(vendingMachine.getBalance(), 0);
+        assertEquals(vendingMachine.getBalance(), 0);
     }
 
     /**
-     * 상품을 구매한 경우
+     * 상품을 구매하고 남은 돈을 환불받은 경우
      */
     @Test
-    public void pick() {
+    void chooseProduct() {
         // given
         haveMoney.chargeBalance(10000);
 
@@ -81,27 +85,51 @@ public class CustomerTests {
             haveMoney.chooseProduct(product.getIdx());
             total += product.getPrice();
         }
-        Assertions.assertEquals(haveMoney.refundChange(), 10000-total);
+        assertEquals(haveMoney.refundChange(), 10000-total);
+    }
+
+    /**
+     * 재고를 초과해서 상품을 구매한 경우
+     */
+    @Test
+    void chooseOverProduct() {
+        // given
+        haveMoney.chargeBalance(10000);
+
+        // when
+        haveMoney.chooseProduct(1);     // 재고 소진
+        
+        // then
+        assertThrows(LackOfStockException.class, () -> haveMoney.chooseProduct(1));
     }
 
     /**
      * 돈이 없는 소비자가 자판기에 충전하려고 한 경우
      */
     @Test
-    public void setNoMoney() {
-        Assertions.assertThrows(NotSufficientMoneyException.class, () -> noMoney.chargeBalance(1000));
+    void setNoMoney() {
+        assertThrows(NotSufficientMoneyException.class, () -> noMoney.chargeBalance(1000));
     }
 
     /**
      * 충전된 돈보다 구매할려는 물품이 더 비싼 경우
+     * 상품을 가져오지 못한다
      */
     @Test
-    public void setOverMoney() {
-//        Assertions.assertThrows()
+    void setOverMoney() {
+        // given
+        haveMoney.chargeBalance(100);
+        // when
+        Product product = haveMoney.chooseProduct(3);
+        // then
+        assertNull(product);
     }
-    
+
+    /**
+     * 구매 과정을 출력
+     */
     @Test
-    public void chooseProduct() {
+    void printProduct() {
         haveMoney.chargeBalance(5000);
 
         Iterator i = vendingMachine.productIterator();

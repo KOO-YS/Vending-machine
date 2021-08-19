@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class VendingMachine {
 
-    private Map<Product, Integer> productMap;     // 상품 리스트 & 재고량
+    private final Map<Product, Integer> productMap;     // 상품 리스트 & 재고량
     private int balance;          // 자판기에 충전된 돈
 
     static private final int STOCK_MAX = 10;      // 자판기 재고 최대치
