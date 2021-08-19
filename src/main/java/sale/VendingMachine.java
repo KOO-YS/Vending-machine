@@ -1,13 +1,22 @@
 package sale;
 
+import error.InvalidProductIdException;
 import error.LackOfStockException;
 import error.StockOutOfBoundsException;
+import product.Product;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class VendingMachine {
+public class VendingMachine{
+    private static final VendingMachine singleton = new VendingMachine();
+
+    public static VendingMachine getInstance() {
+
+        return singleton;
+    }
+
 
     private final Map<Product, Integer> productMap;     // 상품 리스트 & 재고량
     private int balance;          // 자판기에 충전된 돈
@@ -30,13 +39,8 @@ public class VendingMachine {
         }
     }
 
-    private static VendingMachine singleton = new VendingMachine();
-
-    public static VendingMachine getInstance() {
-        return singleton;
-    }
-
-    public int getStock(Product product) {
+    public int getStock(int idx) {
+        Product product = getDetail(idx);
         return productMap.getOrDefault(product, 0);
     }
 
@@ -51,11 +55,15 @@ public class VendingMachine {
     /**
      * 충전된 금액으로 물품을 구매 가능여부를 판단한다.
      */
-    public boolean isChangeAvailable(Product product) {
+    public boolean isEnoughMoney(int idx) {
+        Product product = getDetail(idx);
+
+        if(product == null) throw new InvalidProductIdException();
+
         if (balance - product.getPrice() <0) return false;
         else {
             this.balance -= product.getPrice();
-            stockOut(product, 1);
+            stockOut(idx);
             return true;
         }
     }
@@ -65,45 +73,51 @@ public class VendingMachine {
         for(Product p : productMap.keySet()) {
             if(p.getIdx() == idx) product = p;
         }
+        if(product == null) throw new InvalidProductIdException();
         return product;
+    }
+
+    public void makeStock(Product p, int count) {
+        productMap.put(p, count);
     }
 
     /**
      * 자판기에 재고를 등록한다
      * 만약 기존에 존재하는 물품이라면 수량만 변경한다
-     * @param product 등록 상품
+     * @param idx 등록 상품 번호
      * @param stock 등록 수량
      */
-    public void stockUp(Product product, int stock) {
+    public void stockUp(int idx, int stock) {
         // 재고 수량 확인 (기존 + 추가)
-        stock += getStock(product);
+        stock += getStock(idx);
 
         // 추가 가능한 재고일 때, 자판기에 물품 등록
         if (stock <=0 || stock > STOCK_MAX) throw new StockOutOfBoundsException(stock);
-        productMap.put(product, stock);
+        productMap.put(getDetail(idx), stock);
     }
 
     /**
-     * 자판기에 물품 재고를 제거한다
-     * @param product
+     * 자판기에 물품 재고를 1개 제거한다
+     * @param idx
      */
-    public void stockOut(Product product) {
-        productMap.remove(product);
-    }
+    public void stockOut(int idx) {
+        Product product = getDetail(idx);
 
-    /**
-     * 수량을 함께 적으면 수량만큼만 상품을 제거한다
-     * 만약 남은 수량이 없다면 상품을 제거한다
-     */
-    public void stockOut(Product product, int count) {
-        int stock = getStock(product);
-        stock -= count;
+        int stock = getStock(idx);
+        stock -= 1;
         if (stock < 0)
             throw new LackOfStockException();
         else if(stock==0)
             productMap.remove(product);
         else
             productMap.put(product, stock-1);
+    }
+
+    /**
+     * 상품을 모두 제거한다
+     */
+    public void stockAllOut(int idx) {
+        productMap.remove(getDetail(idx));
     }
 
 
@@ -116,7 +130,7 @@ public class VendingMachine {
         return refund;
     }
 
-    public Iterator productIterator() {
+    public Iterator<Product> stockIterator() {
         return productMap.keySet().iterator();
     }
 

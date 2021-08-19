@@ -4,7 +4,7 @@ import error.LackOfStockException;
 import error.NotSufficientMoneyException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import sale.Product;
+import product.Product;
 import sale.VendingMachine;
 
 import java.util.Iterator;
@@ -15,14 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomerTests {
 
-    private static VendingMachine vendingMachine = VendingMachine.getInstance();
-    private Customer haveMoney;
-    private Customer defaultMoney;
-    private Customer noMoney;
+    private static final VendingMachine vendingMachine = VendingMachine.getInstance();
+    Customer haveMoney;
+    Customer defaultMoney;
+    Customer noMoney;
 
     @BeforeEach
     void setUp() {
-        System.out.println("setup");
         // Customer 설정
         haveMoney = Customer.builder()
                         .budget(10000)
@@ -78,7 +77,7 @@ public class CustomerTests {
         haveMoney.chargeBalance(10000);
 
         // when
-        Iterator i = vendingMachine.productIterator();
+        Iterator i = vendingMachine.stockIterator();
         int total = 0;
         while(i.hasNext()) {
             Product product = (Product)(i.next());
@@ -132,7 +131,7 @@ public class CustomerTests {
     void printProduct() {
         haveMoney.chargeBalance(5000);
 
-        Iterator i = vendingMachine.productIterator();
+        Iterator i = vendingMachine.stockIterator();
         while(i.hasNext()) {
             System.out.println(i.next());
         }

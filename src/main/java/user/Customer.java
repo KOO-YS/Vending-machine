@@ -5,7 +5,7 @@ import error.NotSufficientMoneyException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import sale.Product;
+import product.Product;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,17 +31,14 @@ public class Customer extends User{
     }
 
     /**
-     * TODO 자판기에서 음료 선택
      * @param idx 상품 번호
      */
     public Product chooseProduct(int idx) {
-        Product choose;
-        // 유효한 상품 번호인지 체크
-        if ((choose = vendingMachine.getDetail(idx)) != null){
-           if (vendingMachine.isChangeAvailable(choose))
-               return choose;
-        } else throw new InvalidProductIdException();
-        return null;
+        Product choose = null;
+        if(vendingMachine.isEnoughMoney(idx))
+            choose = vendingMachine.getDetail(idx);
+        else throw new NotSufficientMoneyException();
+        return choose;
     }
 
     /**

@@ -1,43 +1,47 @@
 package user;
 
 import lombok.Builder;
-import sale.Product;
+import product.Product;
 
 @Builder
 public class Manager extends User{
 
     public Manager() { }
 
+    public void makeStock(Product product, int count) {
+        vendingMachine.makeStock(product, count);
+    }
     /**
-     * 상품 추가
-     * @param product 추가할 상품
+     * 상품 수량 추가
+     * @param idx 추가할 상품
      * @param stock 추가 수량
      */
-    public void stockUp(Product product, int stock) {
-        vendingMachine.stockUp(product, stock);
+    public void stockUp(int idx, int stock) {
+        vendingMachine.stockUp(idx, stock);
     }
 
     /**
-     * 상품 제거
-     * @param product 제거할 상품
+     * 상품 아예 제거
+     * @param idx 제거할 상품 번호
      */
-    public void stockOut(Product product) {
-        vendingMachine.stockOut(product);
+    public void stockOut(int idx) {
+        vendingMachine.stockAllOut(idx);
     }
 
     /**
      * 상품의 금액을 변경
-     * @param product 변경 대상
+     * @param idx 변경 대상 번호
      * @param updatePrice 변경할 금액
      */
-    public void updateProduct(Product product, int updatePrice){
-        product = vendingMachine.getDetail(product.getIdx());
-        int existed = vendingMachine.getStock(product);
+    public void updateProduct(int idx, int updatePrice){
+        int existed = vendingMachine.getStock(idx);
         // 기존 내용 제거
-        vendingMachine.stockOut(product);
+        vendingMachine.stockOut(idx);
         // 업데이트 내용 추가
+        Product product = vendingMachine.getDetail(idx);
         product.setPrice(updatePrice);
-        vendingMachine.stockUp(product, existed);
+
+        stockUp(idx, existed);
     }
 
 }
