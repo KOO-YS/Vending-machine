@@ -33,9 +33,10 @@ public class Product {
 
     @Override
     public String toString() {
-        return "[" + idx +
-                "] " + name +
-                " - " + price +
-                '원';
+//        return "[" + idx +
+//                "] " + name +
+//                " - " + price +
+//                '원';
+        return name+" ("+price+"원)";
     }
 }

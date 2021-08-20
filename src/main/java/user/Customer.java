@@ -1,6 +1,5 @@
 package user;
 
-import error.InvalidProductIdException;
 import error.NotSufficientMoneyException;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,8 +34,10 @@ public class Customer extends User{
      */
     public Product chooseProduct(int idx) {
         Product choose = null;
-        if(vendingMachine.isEnoughMoney(idx))
+        if(vendingMachine.isEnoughMoney(idx)) {
             choose = vendingMachine.getDetail(idx);
+            vendingMachine.stockOut(idx);
+        }
         else throw new NotSufficientMoneyException();
         return choose;
     }

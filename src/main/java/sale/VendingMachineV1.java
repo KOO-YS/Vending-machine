@@ -5,16 +5,15 @@ import error.LackOfStockException;
 import error.StockOutOfBoundsException;
 import product.Product;
 import sale_v2.Machine;
+import product.Stock;
+import product.StockImpl;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
-public class VendingMachine implements Machine<Product> {
-    private static final VendingMachine singleton = new VendingMachine();
+public class VendingMachineV1 implements Machine {
+    private static final VendingMachineV1 singleton = new VendingMachineV1();
 
-    public static VendingMachine getInstance() {
-
+    public static VendingMachineV1 getInstance() {
         return singleton;
     }
 
@@ -22,9 +21,7 @@ public class VendingMachine implements Machine<Product> {
     private final Map<Product, Integer> productMap;     // 상품 리스트 & 재고량
     private int balance;          // 자판기에 충전된 돈
 
-    static private final int STOCK_MAX = 10;      // 자판기 재고 최대치
-
-    private VendingMachine() {
+    private VendingMachineV1() {
         productMap = new HashMap<>();
         this.balance = 0;
 
@@ -79,6 +76,7 @@ public class VendingMachine implements Machine<Product> {
     }
 
     public void makeStock(Product p, int count) {
+        if (count <=0 || count > STOCK_MAX) throw new StockOutOfBoundsException(count);
         productMap.put(p, count);
     }
 
@@ -108,8 +106,8 @@ public class VendingMachine implements Machine<Product> {
         stock -= 1;
         if (stock < 0)
             throw new LackOfStockException();
-        else if(stock==0)
-            productMap.remove(product);
+//        else if(stock==0)
+//            productMap.remove(product);
         else
             productMap.put(product, stock-1);
     }
@@ -131,8 +129,12 @@ public class VendingMachine implements Machine<Product> {
         return refund;
     }
 
-    public Iterator<Product> stockIterator() {
-        return productMap.keySet().iterator();
+    public Map<Integer, Stock> stockIterator() {   // index + stock
+        Map<Integer, Stock> map = new HashMap<>();
+        for (Product p : productMap.keySet()) {
+            map.put(p.getIdx(), StockImpl.builder().product(p).count(productMap.get(p)).build());
+        }
+        return map;
     }
 
 }

@@ -1,13 +1,17 @@
 package user;
 
+import error.InvalidProductIdException;
 import error.LackOfStockException;
 import error.NotSufficientMoneyException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import product.Product;
-import sale.VendingMachine;
+import sale_v2.Machine;
+import product.Stock;
+import sale_v2.VendingMachineV2;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,23 +19,27 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CustomerTests {
 
-    private static final VendingMachine vendingMachine = VendingMachine.getInstance();
+    private static Machine vendingMachine;
     Customer haveMoney;
     Customer defaultMoney;
     Customer noMoney;
 
     @BeforeEach
     void setUp() {
+        vendingMachine = VendingMachineV2.getInstance();
         // Customer 설정
         haveMoney = Customer.builder()
                         .budget(10000)
                         .build();
+        haveMoney.setVendingMachine(vendingMachine);
 
         defaultMoney = Customer.builder().build();
+        defaultMoney.setVendingMachine(vendingMachine);
 
         noMoney = Customer.builder()
                 .budget(0)
                 .build();
+        noMoney.setVendingMachine(vendingMachine);
     }
 
 
@@ -77,11 +85,13 @@ public class CustomerTests {
         haveMoney.chargeBalance(10000);
 
         // when
-        Iterator i = vendingMachine.stockIterator();
+        Map<Integer, Stock> map = vendingMachine.stockIterator();
+        Iterator<Integer> i = map.keySet().iterator();
         int total = 0;
         while(i.hasNext()) {
-            Product product = (Product)(i.next());
-            haveMoney.chooseProduct(product.getIdx());
+            int index = i.next();
+            Product product = map.get(index).getDetail();
+            haveMoney.chooseProduct(index);
             total += product.getPrice();
         }
         assertEquals(haveMoney.refundChange(), 10000-total);
@@ -96,11 +106,15 @@ public class CustomerTests {
         haveMoney.chargeBalance(10000);
 
         // when
-        haveMoney.chooseProduct(1);     // 재고 소진
-        
-        // then
-        assertThrows(LackOfStockException.class, () -> haveMoney.chooseProduct(1));
-    }
+        try {
+            for (int i=0; i<10; i++) {
+                haveMoney.chooseProduct(1);     // 재고 소진
+            }
+        } catch (LackOfStockException | InvalidProductIdException e) {
+            System.out.println("확인");
+            assertTrue(true);
+        }
+}
 
     /**
      * 돈이 없는 소비자가 자판기에 충전하려고 한 경우
@@ -119,9 +133,8 @@ public class CustomerTests {
         // given
         haveMoney.chargeBalance(100);
         // when
-        Product product = haveMoney.chooseProduct(3);
+        assertThrows(NotSufficientMoneyException.class, () -> haveMoney.chooseProduct(3));
         // then
-        assertNull(product);
     }
 
     /**
@@ -131,13 +144,22 @@ public class CustomerTests {
     void printProduct() {
         haveMoney.chargeBalance(5000);
 
-        Iterator i = vendingMachine.stockIterator();
-        while(i.hasNext()) {
-            System.out.println(i.next());
-        }
+        printMachine();
 
         Product p = haveMoney.chooseProduct(2);
         System.out.println("구매 "+p);
     }
-
+    private static boolean printMachine() {
+        Map<Integer, Stock> map = vendingMachine.stockIterator();
+        Iterator<Integer> i = map.keySet().iterator();
+        if (!i.hasNext()) {
+            System.out.println("선택 가능한 물품이 없습니다");
+            return false;
+        }
+        while(i.hasNext()) {
+            int index = (int)i.next();
+            System.out.println(index+"번 "+map.get(index));
+        }
+        return true;
+    }
 }
